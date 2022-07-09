@@ -42,7 +42,9 @@ TARGET_USES_UEFI := true
 
 # Kernel
 BOARD_KERNEL_CMDLINE := bootopt=64S3,32N2,64N2 \
-                               buildvariant=user
+                                 buildvariant=user \
+                                 androidboot.selinux=permissive
+
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/prebuilt/kernel
 BOARD_PREBUILT_DTBOIMAGE := $(DEVICE_PATH)/prebuilt/dtbo
 BOARD_BOOTIMG_HEADER_VERSION := 1
