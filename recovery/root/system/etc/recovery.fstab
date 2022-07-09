@@ -10,7 +10,7 @@
 /misc 		       emmc     /dev/block/platform/bootdevice/by-name/para 		       flags=display="misc";wipeingui
 /nvram          emmc            /dev/block/platform/bootdevice/by-name/nvram
 /odmdtbo        emmc            /dev/block/platform/bootdevice/by-name/odmdtbo
-/opporeserve     ext4            /dev/block/by-name/opporeserve
+/mnt/vendor/opporeserve     ext4            /dev/block/by-name/opporeserve
 /otp            emmc            /dev/block/platform/bootdevice/by-name/otp
 /persistent       emmc            /dev/block/platform/bootdevice/by-name/frp
 /proinfo          emmc           /dev/block/platform/bootdevice/by-name/proinfo
