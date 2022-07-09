@@ -1,54 +1,68 @@
 
+on fs
+    # Somehow AOSP build system hasn't provided a symlink here
+    symlink /system_root/system /system
+    export ANDROID_ROOT /system_root
+    install_keyring
+
 on init
-    setprop sys.usb.configfs 1
-    export LD_LIBRARY_PATH /vendor/lib64:/vendor/lib64/hw
+    symlink /vendor/app/mcRegistry /sbin/mcRegistry
     start hwservicemanager
+    start servicemanager
     setprop crypto.ready 1
 
-on fs
-    install_keyring
-    export ANDROID_ROOT /system_root
-
-on post-fs
-    # Support A/B feature for emmc boot region
-    symlink /dev/block/sda /dev/block/mmcblk0boot0
-    symlink /dev/block/sdb /dev/block/mmcblk0boot1
-    symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
-    symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b
-
-service hwservicemanager /system/bin/hwservicemanager
+service hwservicemanager /sbin/hwservicemanager
     user root
     group root
     disabled
     onrestart setprop hwservicemanager.ready false
     seclabel u:r:recovery:s0
  
-service servicemanager /system/bin/servicemanager
+service servicemanager /sbin/servicemanager
     user root
     group root readproc
     disabled
     seclabel u:r:recovery:s0
 
-service keystore /system/bin/keystore /tmp/misc/keystore
-    user root
-    group root drmrpc readproc log
-    disabled
-    seclabel u:r:recovery:s0
-
-service keystore_auth /system/bin/keystore_auth
-    oneshot
-    user system
+# Start Daemon (Registry directories should already be present)
+service mobicore /sbin/mcDriverDaemon --P1 /sbin/mcRegistry \
+	-r /sbin/mcRegistry/06090000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/020f0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/05120000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/070b0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/020b0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/05070000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/030b0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/03100000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/030c0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/5020170115e016302017012521300000.drbin \
+	-r /sbin/mcRegistry/40188311faf343488db888ad39496f9a.drbin \
+	-r /sbin/mcRegistry/070c0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/090b0000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/0f5eed3c3b5a47afacca69a84bf0efad.drbin \
+	-r /sbin/mcRegistry/07060000000000000000000000007169.drbin \
+	-r /sbin/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /sbin/mcRegistry/07407000000000000000000000000000.drbin 
+	user root
     group root
     disabled
     seclabel u:r:recovery:s0
 
-service gatekeeper-1-0 /system/bin/android.hardware.gatekeeper@1.0-service
+#Add for OPPO FBE
+service hal_cryptoeng_oppo /sbin/vendor.oplus.hardware.cryptoeng@1.0-service
+    user root
+    group root drmrpc
+    disabled
+    seclabel u:r:recovery:s0
+
+service gatekeeper-1-0 /sbin/android.hardware.gatekeeper@1.0-service
     user root
     group root
     disabled
     seclabel u:r:recovery:s0
  
-service keymaster-3-0 /system/bin/android.hardware.keymaster@3.0-service
+service keymaster-3-0 /sbin/android.hardware.keymaster@3.0-service
     user root
     group root drmrpc
     disabled
@@ -57,20 +71,36 @@ service keymaster-3-0 /system/bin/android.hardware.keymaster@3.0-service
 on property:hwservicemanager.ready=true
     start keymaster-3-0
     start gatekeeper-1-0
+    start hal_cryptoeng_oppo
+    start mobicore
 
 on property:ro.crypto.state=unsupported
     stop keymaster-3-0
     stop gatekeeper-1-0
- 
+    stop hal_cryptoeng_oppo
+    stop mobicore
+
 on property:ro.crypto.state=unencrypted
     stop keymaster-3-0
     stop gatekeeper-1-0
- 
+    stop hal_cryptoeng_oppo
+    stop mobicore
+
 on property:twrp.decrypt.done=true
     stop keymaster-3-0
     stop gatekeeper-1-0
+    stop hal_cryptoeng_oppo
+    stop mobicore
 
 on property:crypto.ready=0
     stop keymaster-3-0
     stop gatekeeper-1-0
-    stop servicemanager
+    stop hal_cryptoeng_oppo
+    stop mobicore
+
+on post-fs
+    # Support A/B feature for emmc boot region
+    symlink /dev/block/sda /dev/block/mmcblk0boot0
+    symlink /dev/block/sdb /dev/block/mmcblk0boot1
+    symlink /dev/block/mmcblk0boot0 /dev/block/platform/bootdevice/by-name/preloader_a
+    symlink /dev/block/mmcblk0boot1 /dev/block/platform/bootdevice/by-name/preloader_b

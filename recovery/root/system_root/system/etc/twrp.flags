@@ -25,7 +25,7 @@
 /tee1 emmc /dev/block/platform/bootdevice/by-name/tee1
 /tee2 emmc /dev/block/platform/bootdevice/by-name/tee2
 /vbmeta		       emmc     /dev/block/platform/bootdevice/by-name/vbmeta		       flags=display="Vbmeta";backup=1;flashimg=1
-
+ 
 /bootloader       emmc           /dev/block/platform/bootdevice/by-name/lk
 /bootloader2        emmc            /dev/block/platform/bootdevice/by-name/lk2
 /boot_para 		       emmc     /dev/block/platform/bootdevice/by-name/boot_para
@@ -36,12 +36,12 @@
 /md1dsp emmc /dev/block/platform/bootdevice/by-name/md1dsp
 /md1arm7 emmc /dev/block/platform/bootdevice/by-name/md1arm7
 /md3img emmc /dev/block/platform/bootdevice/by-name/md3img
-
+ 
 /system_root	   ext4     /dev/block/platform/bootdevice/by-name/system	         flags=display="System";wipeingui;backup=0
 /system_image    emmc     /dev/block/by-name/system				                       flags=backup=1;flashimg=1
 /vendor           ext4      /dev/block/platform/bootdevice/by-name/vendor              flags=display="Vendor";wipeingui;backup=0
 /vendor_image	   emmc     /dev/block/by-name/vendor                               flags=backup=1;flashimg=1
-
+ 
 # External devices
 /external_sd        auto    /dev/block/mmcblk1p1  /dev/block/mmcblk1          flags=display="Micro SD card";storage;wipeingui;removable
 /usb_otg	       auto     /dev/block/sda1          /dev/block/sda                flags=display="Usb-Otg";storage;removable;wipeingui
