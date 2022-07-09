@@ -1,68 +1,65 @@
 
 on fs
-    # Somehow AOSP build system hasn't provided a symlink here
-    symlink /system_root/system /system
-    export ANDROID_ROOT /system_root
     install_keyring
 
 on init
-    symlink /vendor/app/mcRegistry /sbin/mcRegistry
+    symlink /vendor/app/mcRegistry /system/bin/mcRegistry
     start hwservicemanager
     start servicemanager
     setprop crypto.ready 1
 
-service hwservicemanager /sbin/hwservicemanager
+service hwservicemanager /system/bin/hwservicemanager
     user root
     group root
     disabled
     onrestart setprop hwservicemanager.ready false
     seclabel u:r:recovery:s0
  
-service servicemanager /sbin/servicemanager
+service servicemanager /system/bin/servicemanager
     user root
     group root readproc
     disabled
     seclabel u:r:recovery:s0
 
 # Start Daemon (Registry directories should already be present)
-service mobicore /sbin/mcDriverDaemon --P1 /sbin/mcRegistry \
-	-r /sbin/mcRegistry/06090000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/020f0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/05120000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/070b0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/020b0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/05070000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/030b0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/03100000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/030c0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/07070000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/5020170115e016302017012521300000.drbin \
-	-r /sbin/mcRegistry/40188311faf343488db888ad39496f9a.drbin \
-	-r /sbin/mcRegistry/070c0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/090b0000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/0f5eed3c3b5a47afacca69a84bf0efad.drbin \
-	-r /sbin/mcRegistry/07060000000000000000000000007169.drbin \
-	-r /sbin/mcRegistry/07070000000000000000000000000000.drbin \
-	-r /sbin/mcRegistry/07407000000000000000000000000000.drbin 
+service mobicore /system/bin/mcDriverDaemon --P1 /system/bin/mcRegistry \
+	-r /system/bin/mcRegistry/06090000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/020f0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/05120000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/070b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/020b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/05070000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/030b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/03100000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/030c0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/5020170115e016302017012521300000.drbin \
+	-r /system/bin/mcRegistry/40188311faf343488db888ad39496f9a.drbin \
+	-r /system/bin/mcRegistry/070c0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/090b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/0f5eed3c3b5a47afacca69a84bf0efad.drbin \
+	-r /system/bin/mcRegistry/07060000000000000000000000007169.drbin \
+	-r /system/bin/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/07407000000000000000000000000000.drbin 
 	user root
     group root
     disabled
     seclabel u:r:recovery:s0
 
 #Add for OPPO FBE
-service hal_cryptoeng_oppo /sbin/vendor.oplus.hardware.cryptoeng@1.0-service
+service hal_cryptoeng_oppo /system/bin/vendor.oplus.hardware.cryptoeng@1.0-service
     user root
     group root drmrpc
     disabled
     seclabel u:r:recovery:s0
 
-service gatekeeper-1-0 /sbin/android.hardware.gatekeeper@1.0-service
+service gatekeeper-1-0 /system/bin/android.hardware.gatekeeper@1.0-service
     user root
     group root
     disabled
     seclabel u:r:recovery:s0
  
-service keymaster-3-0 /sbin/android.hardware.keymaster@3.0-service
+service keymaster-3-0 /system/bin/android.hardware.keymaster@3.0-service
     user root
     group root drmrpc
     disabled
