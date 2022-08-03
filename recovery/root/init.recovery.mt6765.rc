@@ -1,10 +1,17 @@
+import /init.healthd.rc
 import /init.mobicore.rc
+
+on early-init
+    start healthd
 
 on init
     # Create a more standard /dev/block layout for our scripts
     symlink /dev/block/platform/bootdevice /dev/block/bootdevice
-    export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/vendor/lib64/hw
+    export LD_LIBRARY_PATH /sbin:/system/lib64:/vendor/lib64:/vendor/lib64/hw
     symlink /vendor/app/mcRegistry /system/bin/mcRegistry
+    mount cgroup none /acct cpuacct
+    mkdir /acct/uid
+    setprop persist.sys.firstlaunch false
 
 on fs
     write /proc/bootprof "start mobicore (on fs)"
@@ -19,80 +26,72 @@ on fs
 #   wait /dev/block/bootdevice/by-name/cache
 #   wait /dev/block/bootdevice/by-name/metadata
 #   wait /dev/block/bootdevice/by-name/para
-    exec /system/bin/e2fsck -y /dev/block/platform/bootdevice/by-name/cache
+    exec /sbin/e2fsck -y /dev/block/platform/bootdevice/by-name/cache
     #exec /sbin/e2fsck -y /dev/block/platform/bootdevice/by-name/userdata
     #mount ext4 /dev/block/platform/bootdevice/by-name/userdata /data rw wait
 #Yongming.Shen@PSW.AD.OppoFeature.Customize.1881073, 2019/03/06, Add for mount custom in recovery
     rm /custom
     mkdir /custom
     mount ext4 /dev/block/platform/bootdevice/by-name/odm /custom ro wait
+
+    #MobiCore Daemon Paths
+    export MC_AUTH_TOKEN_PATH /efs
+    start mobicore
+    start keymaster-3-0
     start hwservicemanager
+    start hal_cryptoeng_oppo
+    write /proc/bootprof "start mobicore end (on fs)"
+#Haitao.Zhou@Prd.BaseDrv, 2015/04/13, Add for merging T-base end
     install_keyring
+    chmod 0666 /dev/kmsg
+
+on late-init
+    #Zequan.Wang@PSW.AD.Recovery.1122242, 2017/12/14, Add for reload persist property when decrypted and mount /data
+on property:recovery.reload.persist=trigger_reload_persist
+    load_persist_props
+
+on property:enable.fbe.service=0
+    stop hal_cryptoeng_oppo
+    stop mobicore
 
 #Add for OPPO FBE
-service keymaster-3-0 /system/bin/android.hardware.keymaster@3.0-service
+service keymaster-3-0 /sbin/android.hardware.keymaster@3.0-service
     #class early_hal
     #user system
     #group system drmrpc
     seclabel u:r:recovery:s0
 
-service gatekeeper-1-0 /system/bin/android.hardware.gatekeeper@1.0-service
+service gatekeeper-1-0 /sbin/android.hardware.gatekeeper@1.0-service
     user root
     group root
     disabled
     seclabel u:r:recovery:s0
 
-service hal_cryptoeng_oppo /system/bin/vendor.oppo.hardware.cryptoeng@1.0-service
+service hal_cryptoeng_oppo /sbin/vendor.oppo.hardware.cryptoeng@1.0-service
     seclabel u:r:recovery:s0
 
-service hwservicemanager /system/bin/hwservicemanager
+service hwservicemanager /sbin/hwservicemanager
     disabled
     onrestart setprop hwservicemanager.ready false
     writepid /dev/cpuset/system-background/tasks
     seclabel u:r:recovery:s0
 
-service servicemanager /system/bin/servicemanager
-    #class core animation
-    #user system
-    #group system readproc
-    #critical
-    #onrestart restart healthd
-    #onrestart restart zygote
-    #onrestart restart audioserver
-    #onrestart restart media
-    #onrestart restart surfaceflinger
-    #onrestart restart inputflinger
-    #onrestart restart drm
-    #onrestart restart cameraserver
-    #onrestart restart keystore
-    #onrestart restart gatekeeperd
+service servicemanager /sbin/servicemanager
     writepid /dev/cpuset/system-background/tasks
     #shutdown critical
     seclabel u:r:recovery:s0
 
 on property:hwservicemanager.ready=true
-    #MobiCore Daemon Paths
-    export MC_AUTH_TOKEN_PATH /efs
-    start mobicore
-    start keymaster-3-0
     start gatekeeper-1-0
-    start hal_cryptoeng_oppo
-    write /proc/bootprof "start mobicore end (on fs)"
 
 on property:ro.crypto.state=unsupported
-    stop mobicore
     stop keymaster-3-0
     stop gatekeeper-1-0
-    stop hal_cryptoeng_oppo
 
 on property:ro.crypto.state=unencrypted
-    stop mobicore
     stop keymaster-3-0
     stop gatekeeper-1-0
-    stop hal_cryptoeng_oppo
 
 on property:twrp.decrypt.done=true
-    stop mobicore
     stop keymaster-3-0
     stop gatekeeper-1-0
-    stop hal_cryptoeng_oppo
