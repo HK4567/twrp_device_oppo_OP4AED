@@ -22,8 +22,8 @@ $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 # Inherit from our custom product configuration
 $(call inherit-product, vendor/omni/config/common.mk)
 
-PRODUCT_DEVICE := PDBM00
-PRODUCT_NAME := omni_PDBM00
+PRODUCT_DEVICE := OP4AED
+PRODUCT_NAME := omni_OP4AED
 PRODUCT_BRAND := oppo
 PRODUCT_MODEL := PDBM00
 PRODUCT_MANUFACTURER := oppo

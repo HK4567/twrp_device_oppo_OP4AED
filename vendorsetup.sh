@@ -15,4 +15,4 @@
 # limitations under the License.
 #
 
-add_lunch_combo omni_PDBM00-eng
+add_lunch_combo omni_OP4AED-eng

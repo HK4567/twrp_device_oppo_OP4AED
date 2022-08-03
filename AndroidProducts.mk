@@ -16,4 +16,4 @@
 #
  
 PRODUCT_MAKEFILES := \
-        $(LOCAL_DIR)/omni_PDBM00.mk
+        $(LOCAL_DIR)/omni_OP4AED.mk

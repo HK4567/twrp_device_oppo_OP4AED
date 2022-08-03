@@ -1,0 +1,26 @@
+# Start Daemon (Registry directories should already be present)
+service mobicore /system/bin/mcDriverDaemon --P1 /system/bin/mcRegistry \
+	-r /system/bin/mcRegistry/06090000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/020f0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/05120000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/070b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/020b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/05070000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/030b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/03100000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/030c0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/5020170115e016302017012521300000.drbin \
+	-r /system/bin/mcRegistry/40188311faf343488db888ad39496f9a.drbin \
+	-r /system/bin/mcRegistry/070c0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/090b0000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/0f5eed3c3b5a47afacca69a84bf0efad.drbin \
+	-r /system/bin/mcRegistry/07060000000000000000000000007169.drbin \
+	-r /system/bin/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /system/bin/mcRegistry/07407000000000000000000000000000.drbin
+    #service mobicore /system/bin/mcDriverDaemon --P1 /system/bin/mcRegistry -r 020f0000000000000000000000000000.drbin -r 07170000000000000000000000000000.drbin
+    #user system
+    #group system
+    #class core
+    #priority -20
+    seclabel u:r:recovery:s0
