@@ -1,0 +1,3 @@
+service healthd /sbin/healthd -r
+    critical
+    seclabel u:r:healthd:s0
