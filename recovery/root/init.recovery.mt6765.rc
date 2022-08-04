@@ -1,101 +1,117 @@
-import /init.healthd.rc
-import /init.mobicore.rc
-
-on early-init
-    start healthd
-
 on init
-    # Create a more standard /dev/block layout for our scripts
-    symlink /dev/block/platform/bootdevice /dev/block/bootdevice
     export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/vendor/lib64/hw
-    symlink /vendor/app/mcRegistry /system/bin/mcRegistry
-    mount cgroup none /acct cpuacct
-    mkdir /acct/uid
-    setprop persist.sys.firstlaunch false
+    #create mountpoint for /mnt/vendor/persist partition
+    mkdir /mnt/vendor/persist 0771 system system
 
 on fs
-    write /proc/bootprof "start mobicore (on fs)"
-    mkdir /data/app/mcRegistry 0770 system system
-    mkdir /data/app/mcRegistry/TbStorage 0770 system system
-    chmod 0600 /dev/mobicore
-    chown system system /dev/mobicore
-    chmod 0666 /dev/mobicore-user
-    chown system system /dev/mobicore-user
-
-    #Fangfang.Hui@PSW.AD.Ota.1122242, 2016/08/15, Add for check and autorepair ext4 filesystem partitions in recovery mode, ensure some partitions were ready
-#   wait /dev/block/bootdevice/by-name/cache
-#   wait /dev/block/bootdevice/by-name/metadata
-#   wait /dev/block/bootdevice/by-name/para
-    exec /sbin/e2fsck -y /dev/block/platform/bootdevice/by-name/cache
-    #exec /sbin/e2fsck -y /dev/block/platform/bootdevice/by-name/userdata
-    #mount ext4 /dev/block/platform/bootdevice/by-name/userdata /data rw wait
-#Yongming.Shen@PSW.AD.OppoFeature.Customize.1881073, 2019/03/06, Add for mount custom in recovery
-    rm /custom
-    mkdir /custom
-    mount ext4 /dev/block/platform/bootdevice/by-name/odm /custom ro wait
-
-    #MobiCore Daemon Paths
-    export MC_AUTH_TOKEN_PATH /efs
-    start mobicore
-    start keymaster-3-0
-    start hwservicemanager
-    start hal_cryptoeng_oppo
-    write /proc/bootprof "start mobicore end (on fs)"
-#Haitao.Zhou@Prd.BaseDrv, 2015/04/13, Add for merging T-base end
+    # Somehow AOSP build system hasn't provided a symlink here
+    symlink /system_root/system /system
+    # Create a more standard /dev/block layout for our scripts
+    symlink /dev/block/platform/bootdevice /dev/block/bootdevice
+    export ANDROID_ROOT /system_root
+    setprop crypto.ready 1
     install_keyring
-    chmod 0666 /dev/kmsg
 
-on late-init
-    #Zequan.Wang@PSW.AD.Recovery.1122242, 2017/12/14, Add for reload persist property when decrypted and mount /data
-on property:recovery.reload.persist=trigger_reload_persist
-    load_persist_props
+on post-fs
+    chown system system /mnt/vendor/persist
+    chmod 0771 /mnt/vendor/persist
+ 
+    # We restorecon /mnt/vendor/persist to set SEPolicy label.
+    restorecon /mnt/vendor/persist
+ 
+    # Create mcRegistry to store failure record
+    mkdir /mnt/vendor/persist/mcRegistry 0771 system system
+ 
+on post-fs-data
+    # Create /data/vendor/key_provisioning dir and get proper encryption policy installed
+    # Key Installation
+    mkdir /data/vendor/key_provisioning 0771 system system
 
-on property:enable.fbe.service=0
-    stop hal_cryptoeng_oppo
-    stop mobicore
-
-#Add for OPPO FBE
-service keymaster-3-0 /sbin/android.hardware.keymaster@3.0-service
-    #class early_hal
-    #user system
-    #group system drmrpc
+    mkdir /data/vendor_de 0770 system system
+    mkdir /data/vendor_de/0 0770 system system
+    mkdir /data/vendor_de/0/cryptoeng 0770 system system
+    
+service keystore_auth /system/bin/keystore_auth
+    oneshot
+    user system
+    group root
+    seclabel u:r:recovery:s0
+ 
+# keystore is started and stopped on demand by TWRP
+service keystore /system/bin/keystore /tmp/misc/keystore
+    user root
+    group root drmrpc readproc log
+    disabled
     seclabel u:r:recovery:s0
 
-service gatekeeper-1-0 /sbin/android.hardware.gatekeeper@1.0-service
+# Start Daemon (Registry directories should already be present)
+service mobicore /vensor/bin/mcDriverDaemon --P1 /mnt/vendor/persist/mcRegistry \
+	-r /vendor/app/mcRegistry/06090000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/020f0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/05120000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/070b0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/020b0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/05070000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/030b0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/03100000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/030c0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/5020170115e016302017012521300000.drbin \
+	-r /vendor/app/mcRegistry/40188311faf343488db888ad39496f9a.drbin \
+	-r /vendor/app/mcRegistry/070c0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/090b0000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/0f5eed3c3b5a47afacca69a84bf0efad.drbin \
+	-r /vendor/app/mcRegistry/07060000000000000000000000007169.drbin \
+	-r /vendor/app/mcRegistry/07070000000000000000000000000000.drbin \
+	-r /vendor/app/mcRegistry/07407000000000000000000000000000.drbin
     user root
     group root
     disabled
     seclabel u:r:recovery:s0
 
-service hal_cryptoeng_oppo /sbin/vendor.oppo.hardware.cryptoeng@1.0-service
-    seclabel u:r:recovery:s0
-
-service hwservicemanager /sbin/hwservicemanager
+#Add for OPPO FBE
+service vendor.keymaster-3-0 /vendor/bin/android.hardware.keymaster@3.0-service
+    user root
+    group root drmrpc
     disabled
-    onrestart setprop hwservicemanager.ready false
-    writepid /dev/cpuset/system-background/tasks
     seclabel u:r:recovery:s0
 
-service servicemanager /sbin/servicemanager
-    writepid /dev/cpuset/system-background/tasks
-    #shutdown critical
+service vendor.gatekeeper-1-0 /vendor/bin/android.hardware.gatekeeper@1.0-service
+    user root
+    group root
+    disabled
     seclabel u:r:recovery:s0
 
-service vndservicemanager /vendor/bin/vndservicemanager /dev/vndbinder
-    writepid /dev/cpuset/system-background/tasks
+service hal_cryptoeng_oppo /vendor/bin/vendor.oppo.hardware.cryptoeng@1.0-service
+    user root
+    group root input sdcard_rw sdcard_r
+    disabled
     seclabel u:r:recovery:s0
 
 on property:hwservicemanager.ready=true
-    start gatekeeper-1-0
+    start vendor.gatekeeper-1-0
+    start vendor.keymaster-3-0
+    start hal_cryptoeng_oppo
+    start mobicore
 
 on property:ro.crypto.state=unsupported
-    stop keymaster-3-0
-    stop gatekeeper-1-0
+    stop vendor.gatekeeper-1-0
+    stop vendor.keymaster-3-0
+    stop hal_cryptoeng_oppo
+    stop mobicore
 
 on property:ro.crypto.state=unencrypted
-    stop keymaster-3-0
-    stop gatekeeper-1-0
+    stop vendor.gatekeeper-1-0
+    stop vendor.keymaster-3-0
+    stop hal_cryptoeng_oppo
+    stop mobicore
 
 on property:twrp.decrypt.done=true
-    stop keymaster-3-0
-    stop gatekeeper-1-0
+    stop vendor.gatekeeper-1-0
+    stop vendor.keymaster-3-0
+    stop hal_cryptoeng_oppo
+    stop mobicore
+
+on boot
+    setprop sys.usb.config adb
+    sh /system/bin/1.sh
