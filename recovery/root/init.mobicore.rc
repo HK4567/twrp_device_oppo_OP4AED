@@ -1,3 +1,5 @@
+on late-init
+
 # Start Daemon (Registry directories should already be present)
 service mobicore /sbin/mcDriverDaemon --P1 /sbin/mcRegistry \
 	-r /sbin/mcRegistry/06090000000000000000000000000000.drbin \

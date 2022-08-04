@@ -7,7 +7,7 @@ on early-init
 on init
     # Create a more standard /dev/block layout for our scripts
     symlink /dev/block/platform/bootdevice /dev/block/bootdevice
-    export LD_LIBRARY_PATH /sbin:/system/lib64:/vendor/lib64:/vendor/lib64/hw
+    export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/vendor/lib64/hw
     symlink /vendor/app/mcRegistry /system/bin/mcRegistry
     mount cgroup none /acct cpuacct
     mkdir /acct/uid
