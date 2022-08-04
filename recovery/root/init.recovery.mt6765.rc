@@ -81,6 +81,10 @@ service servicemanager /sbin/servicemanager
     #shutdown critical
     seclabel u:r:recovery:s0
 
+service vndservicemanager /vendor/bin/vndservicemanager /dev/vndbinder
+    writepid /dev/cpuset/system-background/tasks
+    seclabel u:r:recovery:s0
+
 on property:hwservicemanager.ready=true
     start gatekeeper-1-0
 
